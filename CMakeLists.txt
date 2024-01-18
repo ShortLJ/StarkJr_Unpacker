@@ -1,6 +1,6 @@
 # CMakeLists.txt for event package. It creates a library with dictionary and a main program
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(StartJr_Unpacker)
+project(StarkJr_Unpacker)
 
 # You need to tell CMake where to find the ROOT installation. This can be done in a number of ways:
 #   - ROOT built with classic configure/make use the provided $ROOTSYS/etc/cmake/FindROOT.cmake
@@ -13,14 +13,15 @@ find_package(ROOT REQUIRED COMPONENTS)
 #---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
 include(${ROOT_USE_FILE})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-#ROOT_GENERATE_DICTIONARY(G__Event Event.h LINKDEF EventLinkDef.h)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+ROOT_GENERATE_DICTIONARY(G__Sig Sig.h LINKDEF SigLinkDef.h)
 
 #---Create a shared library with geneated dictionary
-#add_library(Event SHARED Event.cxx G__Event.cxx)
-#target_link_libraries(Event ${ROOT_LIBRARIES})
+add_library(Sig SHARED src/Sig.cxx inc/Sig.h)
+target_link_libraries(Sig ${ROOT_LIBRARIES})
 
 #---Create  a main program using the library
-add_executable(StartJr_Unpacker Unpacker.c)
-#target_link_libraries(Main Event)
-target_link_libraries(StartJr_Unpacker ${ROOT_LIBRARIES})
+add_executable(StarkJr_Unpacker Unpacker.cpp)
+target_link_libraries(StarkJr_Unpacker Sig)
+target_link_libraries(StarkJr_Unpacker ${ROOT_LIBRARIES})
