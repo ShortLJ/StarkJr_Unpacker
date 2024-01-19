@@ -1,9 +1,13 @@
+
 #include <cstring>
+#include <queue>
 
 #include <stdio.h>
 #include <stdint.h>
 
 #include "Sig.h"
+
+
 
 void print_usage()
 {
@@ -17,8 +21,8 @@ int main(int argc, char *argv[])
 	int file_size;
 	int data_read;
  
- 	uint16_t data[4096];
-	uint16_t data_length;
+ 	uint8_t data[8192];
+	uint8_t data_length;
 	Sig sig_tmp;
 
 
@@ -67,15 +71,15 @@ int main(int argc, char *argv[])
 	while (data_read < file_size)
 	{
 		fprintf(stdout, "data_reading after = %d/%d\n", data_read, file_size);
-		data_read += 2* fread(data, 2, 16, fp);
+		data_read += fread(data, 1, 32, fp);
 
 		data_length = data[0] & 0x00FF;
 		if (data_length != 32) 
 		{
 			fflush(stdout);
 			fflush(stderr);
-			fprintf(stderr, "data_length %u!=32\n data_read += 2*fread(data, 2, 4080, fp);\n",data_length);
-			data_read += 2* fread(data, 2, 8160/2, fp);
+			fprintf(stderr, "data_length %u!=32\n data_read += fread(data, 1, 8160, fp);\n",data_length);
+			data_read += fread(data, 1, 8160, fp);
 		}      
 		else
 		{
@@ -84,7 +88,7 @@ int main(int argc, char *argv[])
 
 		fprintf(stdout,"sid %u mid %u ch %u\t",sig_tmp.sid, sig_tmp.mid, sig_tmp.ch);
 		fprintf(stdout,"tcb_trigger_number %u local_trigger_number %u\t", sig_tmp.tcb_trigger_number, sig_tmp.local_trigger_number);
-		fprintf(stdout,"tcb_trigger_time %u local_gate_time %u\t", sig_tmp.tcb_trigger_time, sig_tmp.local_gate_time);
+		fprintf(stdout,"tcb_trigger_time %lu local_gate_time %lu\t", sig_tmp.tcb_trigger_time, sig_tmp.local_gate_time);
 
 
 		fprintf(stdout,"\n");

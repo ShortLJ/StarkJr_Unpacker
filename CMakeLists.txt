@@ -19,7 +19,7 @@ ROOT_GENERATE_DICTIONARY(G__Sig Sig.h LINKDEF SigLinkDef.h)
 
 #---Create a shared library with geneated dictionary
 add_library(Sig SHARED src/Sig.cxx inc/Sig.h)
-target_link_libraries(Sig ${ROOT_LIBRARIES})
+#target_link_libraries(Sig ${ROOT_LIBRARIES})
 
 #---Create  a main program using the library
 add_executable(StarkJr_Unpacker Unpacker.cpp)

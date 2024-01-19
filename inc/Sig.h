@@ -35,14 +35,14 @@ class Sig
 		uint64_t local_gate_time;
 
 		Sig() {	}
-		Sig(uint16_t *data);
+		Sig(uint8_t *data);
 		~Sig() {	}
 		bool operator<(const Sig *sig) const
 		{
 			return this->local_gate_time > sig->local_gate_time;
 		}
 	private:
-		uint16_t *data;
+		uint8_t *data;
 };
 
 
