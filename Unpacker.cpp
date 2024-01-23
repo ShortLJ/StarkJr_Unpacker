@@ -1,29 +1,51 @@
+#include<unistd.h>
 
-#include <cstring>
+
 #include <queue>
+#include <cstring>
 
 #include <stdio.h>
 #include <stdint.h>
 
 #include "Sig.h"
+#include "TimeSorter.h"
+
+
+
+//#define Nsid 2
+//#define Nmid 10
+//#define Nch 32
 
 
 
 void print_usage()
 {
-		fprintf(stdout,"opt explain\n");
+	fprintf(stdout,"StarkJr_Unpacker \\\n");
+	fprintf(stdout,"--input,-i <file.dat>\\\n");
+	fprintf(stdout,"--map,-m <file.txt>\\\n");
 }
 
 int main(int argc, char *argv[])
 {
 	char *inputfilename;
+	char *mapfilename;
 	FILE *fp;
 	int file_size;
 	int data_read;
+	uint64_t evt_processed = 0;
  
  	uint8_t data[8192];
 	uint8_t data_length;
 	Sig sig_tmp;
+
+
+	TimeSorter *timesorter = new TimeSorter();
+	//std::priority_queue<Sig*> q_sig[Nsid][Nmid][Nch];
+
+	//bool enabled[Nsid][Nmid][Nch];
+
+
+
 
 
 	if (argc<2)
@@ -33,10 +55,15 @@ int main(int argc, char *argv[])
 	}
 	for (int i=1; i<argc; i++)
 	{
-		if (strcmp(argv[i],"-i")==0 && argv[i+1])
+		if ((strcmp(argv[i],"--input")==0 || strcmp(argv[i],"-i")==0) && (argv[i+1]))
 		{
 			inputfilename = argv[++i];
 		}
+		else if ((strcmp(argv[i],"--map")==0 || strcmp(argv[i],"-m")==0) && (argv[i+1]))
+		{
+			mapfilename = argv[++i];
+		}
+	
 		else if (strcmp(argv[i],"-h")==0)
 		{
 			print_usage();
@@ -46,6 +73,7 @@ int main(int argc, char *argv[])
 		{
 			fprintf(stderr,"invalid opt\n");
 			print_usage();
+			return -1;
 		}
 	}
 
@@ -53,31 +81,27 @@ int main(int argc, char *argv[])
 	if (fp==NULL)
 	{
 		fprintf(stderr,"No file named \"%s\"\n",inputfilename);
-		return -1;
+		return -2;
 	}
 	fseek(fp, 0L, SEEK_END);
 	file_size = ftell(fp);
+	fprintf(stdout, "Opened innput File: \"%s\" (%d Bytes)\n",inputfilename, file_size);
 	if (file_size<0)
 	{
 		fprintf(stderr, "file size is larger than 2GB\n");
-		return -2;
+		return -3;
 	}
 	fseek(fp, 0, SEEK_SET);
-
-	fprintf(stdout, "Opened innput File: \"%s\"\n",inputfilename);
-
 	data_read = 0;
 
 	while (data_read < file_size)
 	{
-		fprintf(stdout, "data_reading after = %d/%d\n", data_read, file_size);
+		//fprintf(stdout, "data_reading after = %d/%d\n", data_read, file_size);
 		data_read += fread(data, 1, 32, fp);
 
 		data_length = data[0] & 0x00FF;
 		if (data_length != 32) 
 		{
-			fflush(stdout);
-			fflush(stderr);
 			fprintf(stderr, "data_length %u!=32\n data_read += fread(data, 1, 8160, fp);\n",data_length);
 			data_read += fread(data, 1, 8160, fp);
 		}      
@@ -86,17 +110,34 @@ int main(int argc, char *argv[])
 			sig_tmp = Sig(data);
 		}
 
-		fprintf(stdout,"sid %u mid %u ch %u\t",sig_tmp.sid, sig_tmp.mid, sig_tmp.ch);
-		fprintf(stdout,"tcb_trigger_number %u local_trigger_number %u\t", sig_tmp.tcb_trigger_number, sig_tmp.local_trigger_number);
-		fprintf(stdout,"tcb_trigger_time %lu local_gate_time %lu\t", sig_tmp.tcb_trigger_time, sig_tmp.local_gate_time);
+		//sig_tmp.Print();
+
+		fprintf(stdout, "data_read to= %d/%d\t", data_read, file_size);
+//		fprintf(stdout,"\n");
+
+		timesorter->Push(sig_tmp);
+		//timesorter->PrintTopAll();
+		//timesorter->PrintTop(sig_tmp.sid, sig_tmp.mid, sig_tmp.ch);
+		//timesorter->Print(sig_tmp.sid, sig_tmp.mid, sig_tmp.ch);
 
 
+		evt_processed++;
+
+
+		fprintf(stdout,"evt_processed %lu\n", evt_processed);
+		//fflush(stdout);
+
 		fprintf(stdout,"\n");
-		fprintf(stdout, "data_read to= %d/%d\n", data_read, file_size);
-		fprintf(stdout,"\n");
+		//usleep(5000);
+
+
+		//if((sig_tmp.sid==0 && sig_tmp.mid==7)) continue;
+		//if((sig_tmp.sid==0 && sig_tmp.mid==1)) continue;
+		//break;
 	}
 
 
+	timesorter->Print(0,7,0);
 
 
 

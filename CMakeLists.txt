@@ -15,13 +15,17 @@ include(${ROOT_USE_FILE})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
-ROOT_GENERATE_DICTIONARY(G__Sig Sig.h LINKDEF SigLinkDef.h)
+#ROOT_GENERATE_DICTIONARY(G__Sig Sig.h LINKDEF SigLinkDef.h)
+#ROOT_GENERATE_DICTIONARY(G__TimeSorter TimeSorter.h LINKDEF TimeSorterLinkDef.h)
 
 #---Create a shared library with geneated dictionary
 add_library(Sig SHARED src/Sig.cxx inc/Sig.h)
+add_library(TimeSorter SHARED src/TimeSorter.cxx inc/TimeSorter.h)
 #target_link_libraries(Sig ${ROOT_LIBRARIES})
 
 #---Create  a main program using the library
 add_executable(StarkJr_Unpacker Unpacker.cpp)
 target_link_libraries(StarkJr_Unpacker Sig)
+target_link_libraries(StarkJr_Unpacker TimeSorter)
+target_link_libraries(TimeSorter Sig)
 target_link_libraries(StarkJr_Unpacker ${ROOT_LIBRARIES})

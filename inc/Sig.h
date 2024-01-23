@@ -1,5 +1,6 @@
 
 
+#include <stdio.h>
 #include <stdint.h>
 
 
@@ -37,9 +38,16 @@ class Sig
 		Sig() {	}
 		Sig(uint8_t *data);
 		~Sig() {	}
-		bool operator<(const Sig *sig) const
+
+		void Print();
+
+		//bool operator<(const Sig *sig) const
+		//{
+		//	return this->local_gate_time > sig->local_gate_time;
+		//}
+		bool operator<(const Sig sig) const
 		{
-			return this->local_gate_time > sig->local_gate_time;
+			return this->local_gate_time > sig.local_gate_time;
 		}
 	private:
 		uint8_t *data;
