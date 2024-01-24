@@ -4,7 +4,7 @@
 #include "Sig.h"
 
 
-Sig::Sig(uint8_t *data): data(data)
+Sig::Sig(uint8_t *data)
 {
 	uint64_t ltmp;
 	uint32_t itmp;
@@ -125,21 +125,30 @@ Sig::Sig(uint8_t *data): data(data)
 
 }
 
+
 void Sig::Print()
+{
+	fprintf(stdout,"ttn %u\t",tcb_trigger_number);
+	fprintf(stdout,"ltn %u\t",local_trigger_number);
+	fprintf(stdout,"sid %u mid %u ch %u\t",sid,mid,ch);
+	fprintf(stdout,"ttt %lu\t",tcb_trigger_time);
+	fprintf(stdout,"lgt %lu\t",local_gate_time);
+	fprintf(stdout,"ltp %u\t",local_trigger_pattern);
+	fprintf(stdout,"\b\n");
+}
+
+
+
+
+/*void Sig::Print()
 {
 	fprintf(stdout,"tcb_trigger_number %u\t",tcb_trigger_number);
 	fprintf(stdout,"local_trigger_number %u\t",local_trigger_number);
 	fprintf(stdout,"sid %u mid %u ch %u\t",sid,mid,ch);
 	fprintf(stdout,"tcb_trigger_time %lu\t",tcb_trigger_time);
 	fprintf(stdout,"local_gate_time %lu\n",local_gate_time);
-}
-
-
-/*void Sig::Print()
-{
-	fprintf(stdout,"tcb_trigger_number %u\n",tcb_trigger_number);
-	fprintf(stdout,"local_trigger_number %u\n",local_trigger_number);
-	fprintf(stdout,"sid %u mid %u ch %u\n",sid,mid,ch);
-	fprintf(stdout,"tcb_trigger_time %lu\n",tcb_trigger_time);
 	fprintf(stdout,"local_gate_time %lu\n",local_gate_time);
 }*/
+
+
+

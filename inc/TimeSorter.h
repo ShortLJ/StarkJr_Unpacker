@@ -22,12 +22,14 @@ using namespace std;
 class TimeSorter
 {
 	public:
-		priority_queue<Sig> q_sig[Nsid][Nmid][Nch];
 
-		TimeSorter();
+		TimeSorter(char *);
 		~TimeSorter();
 
-		void Pop(uint8_t sid, uint8_t mid, uint8_t ch, bool del);
+		int ReadAndFillQ();
+
+		priority_queue<Sig> q_sig[Nsid][Nmid][Nch];
+		void Pop(uint8_t sid, uint8_t mid, uint8_t ch);
 		bool Empty(uint8_t sid, uint8_t mid, uint8_t ch);
 		void Push(Sig sig);
 		uint32_t Size(uint8_t sid, uint8_t mid, uint8_t ch);
@@ -35,16 +37,21 @@ class TimeSorter
 		virtual void Clear();
 		void PrintTopAll();
 		void PrintTop(uint8_t sid, uint8_t mid, uint8_t ch);
+		void PrintTopAndPop(uint8_t sid, uint8_t mid, uint8_t ch);
 		void Print(uint8_t sid, uint8_t mid, uint8_t ch);
 
 		bool checker(uint8_t sid, uint8_t mid, uint8_t ch);
 
 
 	private:
-		//uint8_t isid;
-		//uint8_t imid;
-		//uint8_t ich;
-		Sig thissig;
+		FILE *fp;
+		int file_size;
+		int data_read;
+		uint8_t data[8192];
+		uint8_t data_length;
+		Sig sig_tmp;
+
+
 
 };
 

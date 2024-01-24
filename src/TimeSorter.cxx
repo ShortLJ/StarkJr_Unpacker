@@ -7,16 +7,72 @@
 
 
 
-TimeSorter::TimeSorter()
-{	};
+TimeSorter::TimeSorter(char *inputfilename)
+{
+	fp = fopen(inputfilename,"rb");
+	if (fp==NULL)
+	{
+		fprintf(stderr,"No file named \"%s\"\n",inputfilename);
+		exit(-2);
+	}
+	fseek(fp, 0L, SEEK_END);
+	file_size = ftell(fp);
+	fprintf(stdout, "Opened innput File: \"%s\" (%d Bytes)\n",inputfilename, file_size);
+	if (file_size<0)
+	{
+		fprintf(stderr, "file size is larger than 2GB\n");
+		exit(-3);
+	}
+	fseek(fp, 0, SEEK_SET);
+	data_read=0;
+}
 
 
 
 TimeSorter::~TimeSorter()
-{	};
+{
+	fclose(fp);
+}
+
+int TimeSorter::ReadAndFillQ()
+{
+	int evt_processed = 0;
+	while (data_read < file_size)
+	{
+		//fprintf(stdout, "data_reading after = %d/%d\n", data_read, file_size);
+		data_read += fread(data, 1, 32, fp);
+		data_length = data[0] & 0x00FF;
+		if (data_length != 32) 
+		{
+			fprintf(stderr, "\ndata_length %u!=32\n data_read += fread(data, 1, 8160, fp);\n",data_length);
+			data_read += fread(data, 1, 8160, fp);
+		}      
+		else
+		{
+			sig_tmp = Sig(data);
+		}
+		fprintf(stdout, "\rdata_read to= %d/%d\t", data_read, file_size);
+
+		Push(sig_tmp);
+		evt_processed++;
+		fprintf(stdout,"evt_processed %d", evt_processed);
+		fflush(stdout);
 
 
-void TimeSorter::Pop(uint8_t isid, uint8_t imid, uint8_t ich, bool del=false)
+	}
+	fprintf(stdout,"\n");
+	fprintf(stdout,"\n");
+
+	return evt_processed;
+}
+
+
+
+
+
+
+
+void TimeSorter::Pop(uint8_t isid, uint8_t imid, uint8_t ich)
 {
 	checker(isid,imid,ich);
 	q_sig[isid][imid][ich].pop();
@@ -61,7 +117,7 @@ void TimeSorter::Clear()
 	{
 		while(q_sig[isid][imid][ich].size()>0) 
 		{
-			Pop(isid,imid,ich,true);
+			Pop(isid,imid,ich);
 		}
 	}
 }
@@ -70,8 +126,14 @@ void TimeSorter::PrintTop(uint8_t isid, uint8_t imid, uint8_t ich)
 {
 	checker(isid,imid,ich);
 	if(Empty(isid,imid,ich)) return;
-	fprintf(stdout, "TimeSorter::PrintTop(sid %u, mid %u, ch %u)\t",isid, imid, ich);
-	fprintf(stdout, "size %u top local_trigger_number %u\n", Size(isid, imid, ich), Top(isid, imid, ich).local_trigger_number);
+	Sig st = q_sig[isid][imid][ich].top();
+	st.Print();
+}
+
+void TimeSorter::PrintTopAndPop(uint8_t isid, uint8_t imid, uint8_t ich)
+{
+	PrintTop(isid,imid,ich);
+	Pop(isid,imid,ich);
 }
 
 void TimeSorter::PrintTopAll()
@@ -86,21 +148,6 @@ void TimeSorter::PrintTopAll()
 		//fprintf(stdout, "sid %u mid %u ch %u\t", isid, imid, ich);
 		//fprintf(stdout, "size %u\n", Size(isid, imid, ich) );
 		PrintTop(isid, imid, ich);
-	}
-}
-
-void TimeSorter::Print(uint8_t isid, uint8_t imid, uint8_t ich)
-{
-	checker(isid,imid,ich);
-	if(Empty(isid,imid,ich)) return;
-	fprintf(stdout, "TimeSorter::PrintTop(sid %u, mid %u, ch %u)\t",isid, imid, ich);
-	fprintf(stdout, "size %u \n", Size(isid, imid, ich));
-	while (!Empty(isid,imid,ich))
-	{
-		Sig temp = Top(isid,imid,ich);
-		temp.Print();
-		//q_sig[isid][imid][ich].Print();
-		Pop(isid,imid,ich);
 	}
 }
 

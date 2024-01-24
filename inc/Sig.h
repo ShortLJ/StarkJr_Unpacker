@@ -41,16 +41,12 @@ class Sig
 
 		void Print();
 
-		//bool operator<(const Sig *sig) const
-		//{
-		//	return this->local_gate_time > sig->local_gate_time;
-		//}
 		bool operator<(const Sig sig) const
 		{
 			return this->local_gate_time > sig.local_gate_time;
 		}
 	private:
-		uint8_t *data;
+
 };
 
 
