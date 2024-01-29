@@ -56,6 +56,8 @@ class HitBuilder
 		void SetTimeWindow(int64_t tw){timewindow=tw;}
 		void Func();
 
+		bool isGood();
+
 
 	private:
 		TimeSorter *timesorter;

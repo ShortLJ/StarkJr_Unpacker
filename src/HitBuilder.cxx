@@ -104,7 +104,11 @@ bool HitBuilder::AllEmpty()
 
 
 
-
+bool HitBuilder::isGood()
+{
+	return 1;
+	///////////// where we will put constraints for identifying a particle hit
+}
 
 
 
