@@ -72,10 +72,12 @@ int TimeSorter::ReadAndFillQ()
 
 
 
-void TimeSorter::Pop(uint8_t isid, uint8_t imid, uint8_t ich)
+uint32_t TimeSorter::Pop(uint8_t isid, uint8_t imid, uint8_t ich)
 {
 	checker(isid,imid,ich);
+	if(Size(isid,imid,ich)==0) exit(-5);
 	q_sig[isid][imid][ich].pop();
+	return Size(isid,imid,ich);
 }
 
 bool TimeSorter::Empty(uint8_t isid, uint8_t imid, uint8_t ich)
@@ -102,7 +104,10 @@ uint32_t TimeSorter::Size(uint8_t isid, uint8_t imid, uint8_t ich)
 Sig TimeSorter::Top(uint8_t isid, uint8_t imid, uint8_t ich)
 {	
 	checker(isid,imid,ich);
-	if(Empty(isid,imid,ich)) return Sig();
+	if(Empty(isid,imid,ich))
+	{
+		fprintf(stderr,"q_sig[isid%u][imid%u][ich%u] is empty, but you tried to call Top()!!\n",isid,imid,ich); exit(-6);
+	}
 	return q_sig[isid][imid][ich].top();
 }
 
@@ -125,9 +130,10 @@ void TimeSorter::Clear()
 void TimeSorter::PrintTop(uint8_t isid, uint8_t imid, uint8_t ich)
 {
 	checker(isid,imid,ich);
-	if(Empty(isid,imid,ich)) return;
-	Sig st = q_sig[isid][imid][ich].top();
-	st.Print();
+	//if(Empty(isid,imid,ich)) return;
+	Top(isid,imid,ich).Print();
+	//Sig st = Top(isid,imid,ich);
+	//st.Print();
 }
 
 void TimeSorter::PrintTopAndPop(uint8_t isid, uint8_t imid, uint8_t ich)
@@ -145,12 +151,22 @@ void TimeSorter::PrintTopAll()
 	for(isid=0; isid<Nsid; isid++)	for(imid=0; imid<Nmid; imid++)	for(ich=0; ich<Nch; ich++) if(imid%2==1)
 	{
 		if(Empty(isid,imid,ich)) continue;
-		//fprintf(stdout, "sid %u mid %u ch %u\t", isid, imid, ich);
-		//fprintf(stdout, "size %u\n", Size(isid, imid, ich) );
 		PrintTop(isid, imid, ich);
 	}
 }
 
+void TimeSorter::PrintSize()
+{
+	for(uint8_t isid=0; isid<Nsid; isid++)	for(uint8_t imid=0; imid<Nmid; imid++)	//if(imid%2==1)
+	{
+		fprintf(stdout,"\nsid %u mid %u\t", isid, imid);
+		for(uint8_t ich=0     ; ich<Nch/2; ich++)	fprintf(stdout, "%u\t", Size(isid, imid, ich) );
+		fprintf(stdout,"\nsid %u mid %u\t", isid, imid);
+		for(uint8_t ich=Nch/2 ; ich<Nch  ; ich++)	fprintf(stdout, "%u\t", Size(isid, imid, ich) );
+		
+	}
+	fprintf(stdout,"\n");
+}
 
 
 

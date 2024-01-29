@@ -64,33 +64,10 @@ int main(int argc, char *argv[])
 	TimeSorter timesorter(inputfilename);
 	timesorter.ReadAndFillQ();
 
+	timesorter.PrintSize();
 
-	/*int idet=0; int ipad=1; int istr=3;
 
-	int sid_junc[Ndet] = {0,0,0,0,0,0};
-	int mid_junc[Ndet] = {1,1,3,5,5,7};
-	int ch_juncU[Ndet][Nstr] ={
-		{ 0, 2, 4, 6, 8,10,12,14},
-		{16,18,20,22,24,26,28,30},
-		{ 0, 2, 4, 6, 8,10,12,14},
-		{ 0, 2, 4, 6, 8,10,12,14},
-		{16,18,20,22,24,26,28,30},
-		{ 0, 2, 4, 6, 8,10,12,14}	};
-	int ch_juncD[Ndet][Nstr]; 
-	for (idet=0; idet<Ndet; idet++) for (istr=0; istr<Nstr; istr++) ch_juncD[idet][istr] = ch_juncU[idet][istr]+1;
-
-	int sid_ohmic[Ndet] = {0,0,0,0,0,0};
-	int mid_ohmic[Ndet] = {3,3,3,7,7,7};
-	int ch_ohmic[Ndet][Npad] ={
-		{16,17,18,19},
-		{20,21,22,23},
-		{24,25,26,27},
-		{16,17,18,19},
-		{20,21,22,23},
-		{24,25,26,27}	};
-	*/
-	
-	int idet=0; int ipad=1; int istr=3;
+	int idet; int ipad; int istr;
 
 	uint8_t sid_junc[Ndet] = {0,0,0,0,0,0};
 	uint8_t mid_junc[Ndet] = {1,1,3,3,5,5};
@@ -99,6 +76,7 @@ int main(int argc, char *argv[])
 		{16,18,20,22,24,26,28,30},
 		{ 0, 2, 4, 6, 8,10,12,14},
 		{16,18,20,22,24,26,28,30},
+		{ 0, 2, 4, 6, 8,10,12,14},
 		{16,18,20,22,24,26,28,30}
 		};
 	uint8_t ch_juncD[Ndet][Nstr]; 
@@ -115,23 +93,34 @@ int main(int argc, char *argv[])
 		{24,25,26,27}	};
 	
 	idet=1;
-	bool allempty=1;
-	bool fff; uint64_t minttt; bool fir;
+	bool allempty=0;
+	bool fff; 
+	uint64_t minlgt; //uint8_t minsid, minmid, minch;
+	uint64_t prevlgt = 0; int64_t detlgt; int64_t intpad = INT64_MAX>1;
+	bool fir;
 	Sig ssss[3];
-	while(allempty)
+	while(!allempty)
 	{
 		fff=1;
 		for (int ipad=0; ipad<Npad; ipad++)	for (int istr=0; istr<Nstr; istr++)
 		{
+			if(timesorter.Empty(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad])) continue;
+			if(timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr])) continue;
+			if(timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr])) continue;
+	
 			ssss[0] = timesorter.Top(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]) ;
 			ssss[1] = timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]) ;
 			ssss[2] = timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]) ;
 
 			if(ssss[0].local_gate_time==ssss[1].local_gate_time && ssss[0].local_gate_time==ssss[2].local_gate_time) 
 			{
-				fprintf(stdout,"//// Hit built ////\n");
+				detlgt = ssss[0].local_gate_time-prevlgt;	prevlgt = ssss[0].local_gate_time;
+				fprintf(stdout,"//// Hit built //// detlgt %ld\n", detlgt);
+				fprintf(stdout,"\t");
 				timesorter.PrintTopAndPop(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]);
+				fprintf(stdout,"\t");
 				timesorter.PrintTopAndPop(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]);
+				fprintf(stdout,"\t");
 				timesorter.PrintTopAndPop(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]);
 				fff=0;
 			}
@@ -141,105 +130,74 @@ int main(int argc, char *argv[])
 			fir=1;
 			for (int ipad=0; ipad<Npad; ipad++)	
 			{
-				if(fir)
+				if(timesorter.Empty(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad])) continue;
+				if(fir) {minlgt=timesorter.Top(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]).local_gate_time; fir=0; }
+				if(minlgt>timesorter.Top(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]).local_gate_time)
 				{
-					minttt=timesorter.Top(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]).local_gate_time; fir=0;
+					minlgt=timesorter.Top(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]).local_gate_time;
 				}
-				if(minttt>timesorter.Top(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]).local_gate_time) 
-					minttt=timesorter.Top(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]).local_gate_time;
 			}
 			for (int istr=0; istr<Nstr; istr++)
 			{
-				if(minttt>timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncU[idet][ipad]).local_gate_time) 
-					minttt=timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncU[idet][ipad]).local_gate_time;
-				if(minttt>timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncD[idet][ipad]).local_gate_time) 
-					minttt=timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncD[idet][ipad]).local_gate_time;
+				if(timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr])) continue;
+				if(fir) {minlgt=timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]).local_gate_time; fir=0; }
+				if(minlgt>timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]).local_gate_time)
+				{
+					minlgt=timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]).local_gate_time;
+				}
+			}
+			for (int istr=0; istr<Nstr; istr++)
+			{
+				if(timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr])) continue;
+				if(fir) {minlgt=timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]).local_gate_time; fir=0; }
+				if(minlgt>timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]).local_gate_time)
+				{
+					minlgt=timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]).local_gate_time;
+				}
 			}
 
-
-			fprintf(stdout,"//// Sig Dumped ////\n");
+			detlgt = minlgt-prevlgt;	prevlgt = minlgt;
+			fprintf(stdout,"//// Sig Dumped //// detlgt %ld\n",detlgt);
 			for (int ipad=0; ipad<Npad; ipad++)	
 			{
-				if(minttt==timesorter.Top(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]).local_gate_time)
+				if(timesorter.Empty(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad])) continue;
+				if(minlgt==timesorter.Top(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]).local_gate_time)
 				{
 					timesorter.PrintTopAndPop(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]);
 				}
 			}
 			for (int istr=0; istr<Nstr; istr++)
 			{
-				if(minttt==timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncU[idet][ipad]).local_gate_time) 
+				if(timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr])) continue;
+				if(minlgt==timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]).local_gate_time) 
 				{
 					timesorter.PrintTopAndPop(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]);
 				}
-				if(minttt==timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncD[idet][ipad]).local_gate_time) 
+			}
+			for (int istr=0; istr<Nstr; istr++)
+			{
+				if(timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr])) continue;
+				if(minlgt==timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]).local_gate_time) 
 				{
 					timesorter.PrintTopAndPop(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]);
 				}
 			}
-
-
 		}
-
-
-
-		if (timesorter.Empty(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad])) break;
-		if (timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr])) break;
-		if (timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr])) break;
-
-	}
-
-	/*idet=1; 
-	//for (int idet=0; idet<Ndet; idet++) 
-	{
-	fprintf(stdout,"\n");
-		fprintf(stdout,"\n");
-		for (int ipad=0; ipad<Npad; ipad++)
+		allempty=1;
+		for (int ipad=0; ipad<Npad; ipad++)	
 		{
-			if (!timesorter.Empty(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]))
-			{
-				timesorter.Top(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]).Print();
-				timesorter.Pop(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]);
-			}
+			if(!timesorter.Empty(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad])) allempty=0;
 		}
-		fprintf(stdout,"\n");
 		for (int istr=0; istr<Nstr; istr++)
 		{
-			if (!timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]))
-			{
-				timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]).Print();
-				timesorter.Pop(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]);
-			}
-			if (!timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]))
-			{
-				timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]).Print();
-				timesorter.Pop(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]);
-			}
+			if(!timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr])) allempty=0;
+			if(!timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr])) allempty=0;
 		}
-		fprintf(stdout,"\n");
-		for (int ipad=0; ipad<Npad; ipad++)
-		{
-			if (!timesorter.Empty(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]))
-			{
-				timesorter.Top(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]).Print();
-				timesorter.Pop(sid_ohmic[idet], mid_ohmic[idet], ch_ohmic[idet][ipad]);
-			}
-		}
-		fprintf(stdout,"\n");
-		for (int istr=0; istr<Nstr; istr++)
-		{
-			if (!timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]))
-			{
-				timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]).Print();
-				timesorter.Pop(sid_junc[idet], mid_junc[idet], ch_juncU[idet][istr]);
-			}
-			if (!timesorter.Empty(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]))
-			{
-				timesorter.Top(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]).Print();
-				timesorter.Pop(sid_junc[idet], mid_junc[idet], ch_juncD[idet][istr]);
-			}
-		}
+		if(allempty) break;
+	
 	}
-	*/
+
+
 
 
 
