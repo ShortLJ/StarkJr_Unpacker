@@ -8,9 +8,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+//#include "TInterpreter.h"
+#include "TFile.h"
+#include "TTree.h"
+
 #include "Sig.h"
 #include "TimeSorter.h"
 #include "HitBuilder.h"
+//#include "WriteTree.h"
 
 
 void print_usage()
@@ -61,6 +66,11 @@ int main(int argc, char *argv[])
 			return -1;
 		}
 	}
+//	memo for sid mapping parser
+// int sid[4] = {2,4,6,8};
+// int iii[128]
+// for(int i=0; i<4; i++){ iii[sid[i]]=i; }
+//
 
 
 
@@ -71,10 +81,32 @@ int main(int argc, char *argv[])
 
 	HitBuilder hitbuilder(&timesorter);
 	hitbuilder.SetTimeWindow(timewindow);
-	hitbuilder.Func();
+
+	//gInterpreter->GenerateDictionary("vector<Hit>", "Hit.h");
+
+	TFile *file = new TFile("output.root","recreate");
+	TTree *tree = new TTree("nkfadc","nkfadc");
+	//Hit hits[Ndet];
+	//tree->Branch("hits[Ndet]", hits );
+	vector<Hit> hits;
+	tree->Branch("vector<Hit>", &hits );
 
 
+	while(!hitbuilder.AllEmpty())
+	{
+		hitbuilder.Build();
+		//hitbuilder.PrintBuilt();
+		for (int idet=0; idet<Ndet; idet++)
+		{
+			//hits[idet] = hitbuilder.GetHit(idet);
+			hits.clear();
+			hits.push_back(hitbuilder.GetHit(idet));
+		}
+		tree->Fill();
+	}
 
+	tree->Write();
+	file->Close();
 
 	return 0;
 

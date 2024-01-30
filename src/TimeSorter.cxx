@@ -66,12 +66,6 @@ int TimeSorter::ReadAndFillQ()
 	return evt_processed;
 }
 
-
-
-
-
-
-
 uint32_t TimeSorter::Pop(uint8_t isid, uint8_t imid, uint8_t ich)
 {
 	checker(isid,imid,ich);

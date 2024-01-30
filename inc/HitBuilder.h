@@ -2,6 +2,7 @@
 
 
 #include "TimeSorter.h"
+#include "Hit.h"
 
 #ifndef __HITBUILDER__
 #define __HITBUILDER__
@@ -9,6 +10,7 @@
 #define Ndet 6
 #define Npad 4
 #define Nstr 8
+#define Ntype 3 // pad, stU, stD
 
 uint8_t sid_junc[Ndet] = {0,0,0,0,0,0};
 uint8_t mid_junc[Ndet] = {1,1,3,3,5,5};
@@ -40,11 +42,6 @@ uint8_t ch_ohmic[Ndet][Npad] ={
 	{24,25,26,27}	
 };
 
-
-
-
-
-
 using namespace std;
 
 class HitBuilder
@@ -53,23 +50,33 @@ class HitBuilder
 		HitBuilder(TimeSorter*);
 		~HitBuilder();
 
+		void ReadMapFile(const char *);
+
 		void SetTimeWindow(int64_t tw){timewindow=tw;}
-		void Func();
+		bool AllEmpty();
+		void Build();
+		//void BuildAndPrintPop();
+		void PrintBuilt();
 
 		bool isGood();
 
+		Hit GetHit(int idet){return Hit(v_sig[0][idet],v_sig[1][idet],v_sig[2][idet]);}
 
 	private:
 		TimeSorter *timesorter;
 
+		vector<Sig> v_sig[3][Ndet];
+
 		uint64_t GetMinLGT();
+		void Clear(int idet);
 		void Clear();
-		void Push_Back(uint8_t isid, uint8_t imid, uint8_t ich);
-		uint32_t Size();
-		int FindSigWithLGT(int idet, uint64_t lgt);
+		void Push_Back(int idet, Sig sig, int type);
+		void Push_Back_AndPop(int idet, uint8_t isid, uint8_t imid, uint8_t ich, int type);
+		uint32_t Size(int idet);
+		uint32_t Size(int idet, int type);
+		int FindSigWithLGT(int idet, uint64_t lgt, int64_t tw);
 		void PrintBuilt(int idet);
 		bool AllEmpty(int idet);
-		bool AllEmpty();
 
 
 
@@ -78,46 +85,12 @@ class HitBuilder
 		uint64_t minlgt;
 		uint64_t prevlgt;
 		//int64_t dlgt;
-		vector<uint8_t> v_hit_sid, v_hit_mid, v_hit_ch;
 
 		
 		int64_t timewindow = 0;
-
-
-
-
-
 };
 #endif // __HITBUILDER__
 
 
-
-HitBuilder::HitBuilder(TimeSorter *timesorter)
-	: timesorter(timesorter)
-{
-	//b_first=1;
-	minlgt=0;
-}
-
-HitBuilder::~HitBuilder()
-{	}
-
-
-void HitBuilder::Func()
-{
-	while(AllEmpty())
-	{
-		minlgt = GetMinLGT();
-
-		for (idet=0; idet<Ndet; idet++)
-		{
-			Clear();
-			if(FindSigWithLGT(idet, minlgt)>0)
-			{
-				PrintBuilt(idet);
-			}
-		}
-	}
-}
 
 

@@ -1,11 +1,30 @@
 #include "TObject.h"
 
-class Hit: public TObject
+#include "Sig.h"
+
+#ifndef __HIT__
+#define __HIT__
+
+using namespace std;
+
+class Hit : public TObject
 {
 	public:
-		UInt_t detID;
-		UInt_t stripID;
-		UInt_t padID;
+		vector<Sig> v_sig_pad;
+		vector<Sig> v_sig_stU;
+		vector<Sig> v_sig_stD;
+		Hit();
+		Hit(vector<Sig>, vector<Sig>, vector<Sig>);
+		~Hit();
+
+		void Clear();
+
+		ClassDef(Hit, 1)
+
+		/*
+		uint8_t detID;
+		uint8_t stripID;
+		uint8_t padID;
 
 		Int_t stripValU;
 		Int_t stripValD;
@@ -14,11 +33,9 @@ class Hit: public TObject
 
 
 		Bool_t isDet;
-
+		*/
 	public:
-		TAnaX6();
-		virtual ~TAnaX6();
-
+		/*
 		virtual void Clear(Option_t* = "");
 
 		void SetValues(Int_t _detID, Int_t _stripID, Int_t _padID,
@@ -29,5 +46,12 @@ class Hit: public TObject
 		inline Double_t GetStripDiffR() { return double(GetStripDiff())/GetStripSum(); }
 
 		ClassDef(TAnaX6, 1)
+		*/
 };
+
+
+
+#endif // __HIT__
+
+
 
